@@ -1,22 +1,24 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import Analytics from '@/views/AnalyticsPage.vue'
+import store from '@/store/index'
+import AuthPage from "@/views/AuthPage";
 
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
+    name: 'analytics',
+    meta: {
+      requiresAuth: true
+    },
+    component: Analytics
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: '/auth',
+    name: 'auth',
+    component: AuthPage
   }
 ]
 
@@ -24,6 +26,19 @@ const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
   routes
+});
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    console.log(!store.getters.token)
+    if (!store.getters.token) {
+      next({ name: 'auth' })
+    } else {
+      next() 
+    }
+  } else {
+    next() // does not require auth, make sure to always call next()!
+  }
 })
 
 export default router
